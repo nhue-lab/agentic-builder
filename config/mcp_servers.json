@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uv",
+      "args": [
+        "run",
+        "mcp-server-sqlite",
+        "--db-path",
+        "c:/Users/nhdep/sqlite.db"
+      ]
+    }
+  }
+}

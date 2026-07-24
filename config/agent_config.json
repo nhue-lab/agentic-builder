@@ -1,0 +1,7 @@
+{
+  "model": "gemini-2.5-pro",
+  "temperature": 0.2,
+  "max_tokens_per_session": 500000,
+  "max_consecutive_iterations": 15,
+  "system_prompt_path": "config/system_prompt.md"
+}
