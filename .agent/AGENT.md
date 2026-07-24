@@ -29,10 +29,13 @@ Au démarrage de tout nouveau projet ou tâche non triviale :
 - L'intégration d'un bot Telegram et d'un déploiement Cloud 24/7 (Render) est **strictement optionnelle et conditionnelle**.
 - Si l'hébergement cloud ou l'accès 24/7 n'est pas pertinent pour le besoin d'un projet (ex: outil CLI local, script ponctuel, pipeline batch), **il ne faut PAS l'implémenter ni l'exiger**. L'agent s'exécute par défaut en mode CLI local frugal.
 
-### 5. Règle d'Or — Distinction Méta-Agent (Antigravity) vs Agent Produit (`agentic-builder`)
-- **Antigravity** est l'assistant/méta-agent de développement (pair programmer dans l'IDE). Son unique rôle est de vous aider à concevoir, scripter, tester et déployer l'agent.
-- **`agentic-builder`** est le produit exécutable issu du code source.
-- **Obligation** : Si l'utilisateur donne une consigne métier comme s'il s'adressait au produit `agentic-builder` final, Antigravity doit immédiatement lui expliquer qu'il est l'architecte du code, et lui rappeler comment exécuter et interagir avec son vrai agent (via CLI `python src/main.py "tâche"` ou via Telegram).
+### 5. Règle d'Or — Workflow en 2 Étapes & Passage de Relais au Terminal
+- **Étape 1 (Dans le Chat avec Antigravity)** : Antigravity accompagne l'utilisateur pour cadrer le besoin, importer un maximum de contexte (`.agent/`, System Prompt, skills, guardrails, `.env`), et s'assurer que la tuyauterie est 100% prête et testée.
+- **Étape 2 (Dans le Terminal / Telegram par l'Utilisateur)** : Pour exécuter l'action réelle pour laquelle l'agent a été créé, l'utilisateur lance l'agent directement dans son terminal.
+- **Obligation pour Antigravity** : Dès que la phase de paramétrage/cadrage est terminée (ou si l'utilisateur tente de faire exécuter l'action métier dans le chat), Antigravity doit prévenir l'utilisateur et lui fournir la commande exacte à copier-coller dans son terminal :
+  ```bash
+  python src/main.py "votre tâche métier ici"
+  ```
 
 ## Rules of Engagement
 1. Do not perform low level file tasks if a skill exists.
