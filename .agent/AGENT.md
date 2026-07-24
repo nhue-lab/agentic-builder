@@ -29,6 +29,11 @@ Au démarrage de tout nouveau projet ou tâche non triviale :
 - L'intégration d'un bot Telegram et d'un déploiement Cloud 24/7 (Render) est **strictement optionnelle et conditionnelle**.
 - Si l'hébergement cloud ou l'accès 24/7 n'est pas pertinent pour le besoin d'un projet (ex: outil CLI local, script ponctuel, pipeline batch), **il ne faut PAS l'implémenter ni l'exiger**. L'agent s'exécute par défaut en mode CLI local frugal.
 
+### 5. Règle d'Or — Distinction Méta-Agent (Antigravity) vs Agent Produit (`agentic-builder`)
+- **Antigravity** est l'assistant/méta-agent de développement (pair programmer dans l'IDE). Son unique rôle est de vous aider à concevoir, scripter, tester et déployer l'agent.
+- **`agentic-builder`** est le produit exécutable issu du code source.
+- **Obligation** : Si l'utilisateur donne une consigne métier comme s'il s'adressait au produit `agentic-builder` final, Antigravity doit immédiatement lui expliquer qu'il est l'architecte du code, et lui rappeler comment exécuter et interagir avec son vrai agent (via CLI `python src/main.py "tâche"` ou via Telegram).
+
 ## Rules of Engagement
 1. Do not perform low level file tasks if a skill exists.
 2. Delegate web lookup queries to the "researcher" skill.
