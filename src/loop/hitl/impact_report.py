@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
@@ -38,3 +39,14 @@ class ImpactReport(BaseModel):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             f.write(self.model_dump_json(indent=2))
+
+    @classmethod
+    def load(cls, path: str = ".agent/impact_report.json") -> Optional["ImpactReport"]:
+        """Load an impact report from disk if it exists."""
+        if not os.path.exists(path):
+            return None
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return cls.model_validate_json(f.read())
+        except Exception:
+            return None

@@ -15,9 +15,24 @@ class GrillMeGuard:
             logger.info("GrillMeGuard is disabled in settings.")
             return state
 
-        # If it's already approved, transition to RUNNING and continue
+        # If it's already approved, transition to RUNNING and inject validated directive
         if state.status == AgentStatus.GRILL_ME_APPROVED:
-            logger.info("Task already approved by /grill-me. Resuming agent run.")
+            logger.info("Task approved by /grill-me. Injecting approved impact directive into system prompt context.")
+            report = ImpactReport.load()
+            if report:
+                approved_directive = (
+                    f"DIRECTIVE DE CADRAGE SYSTEME VALIDÉE PAR L'UTILISATEUR (/GRILL-ME PHASE 0):\n"
+                    f"- Objectif validé : {report.objective}\n"
+                    f"- Périmètre fichiers autorisés : {', '.join(report.files_affected)}\n"
+                    f"- Risques identifiés & maîtrisés : {', '.join(report.risks)}\n"
+                    f"- Statut : APPROUVÉ (Verrou Read-Only levé). Vous pouvez exécuter la tâche selon ce périmètre."
+                )
+                state.history.append(Message(
+                    role="system",
+                    content=approved_directive,
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    priority=2
+                ))
             state.status = AgentStatus.RUNNING
             return state
 
