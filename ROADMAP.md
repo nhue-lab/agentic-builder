@@ -43,9 +43,9 @@ Fournir le template Python le plus propre, modulaire, sécurisé et frugal pour 
 - **Décision (24/07/2026)** : Verrouillage strict en **lecture seule** tant que la phase de cadrage d'impact `/grill-me` n'a pas été formellement approuvée par l'utilisateur (`GRILL_ME_APPROVED`).
 - **Motif** : Garantir qu'aucune modification ni action destructrice ne peut avoir lieu avant validation explicite des leviers et risques du projet.
 
-#### 5. Configuration Modèles & Clé API Gratuite (`config/settings.py`, `.env.example`)
-- **Décision (24/07/2026)** : Définir `gemini-2.5-flash-lite` comme modèle par défaut (tier gratuit Google AI Studio : 30 RPM, 1M TPM).
-- **Motif** : Permettre de développer et de tester gratuitement à volonté avant de basculer sur `gemini-2.5-pro` en production.
+#### 6. Adaptateur Telegram & Déploiement Cloud 24/7 Render (`src/entrypoints/telegram_bot.py`, `render.yaml`)
+- **Décision (24/07/2026)** : Intégration d'un adaptateur Telegram Async Long-Polling (`httpx` natif) avec whitelist de sécurité (`ALLOWED_TELEGRAM_USERS`), couplé à un Blueprint `render.yaml` pour un déploiement gratuit 24/7 en tant que **Background Worker**.
+- **Motif** : Permettre de contrôler l'agent à tout moment via Telegram (même PC éteint), avec réponse instantanée (< 1s), suivi du statut `/status` et validation interactive `/approve` de la phase `/grill-me`.
 
 ---
 

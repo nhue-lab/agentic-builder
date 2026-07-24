@@ -73,12 +73,18 @@ async def run_agent(task: Optional[str] = None, resume: bool = False):
 
 def main():
     args = sys.argv[1:]
+
+    if "--mode" in args and "telegram" in args:
+        from src.entrypoints.telegram_bot import run_telegram_bot
+        run_telegram_bot()
+        return
+
     resume = False
     if "--resume" in args:
         resume = True
         args.remove("--resume")
         
-    task = args[0] if len(args) > 0 else None
+    task = args[0] if len(args) > 0 and not args[0].startswith("--") else None
     asyncio.run(run_agent(task, resume=resume))
 
 

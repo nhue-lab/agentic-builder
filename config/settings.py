@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     # Read-only skills during Grill-Me phase
     read_only_skills: list[str] = ["researcher", "tester"]
 
+    # Telegram Bot & Cloud Deployment Config (Render)
+    telegram_bot_token: str = ""
+    allowed_telegram_users: list[str] = []
+    render_deployment_enabled: bool = False
+
     # Config path
     mcp_config_path: str = "config/mcp_servers.json"
 
