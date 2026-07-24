@@ -13,3 +13,6 @@
    - Antigravity prévient systématiquement l'utilisateur en lui fournissant la commande exacte à copier-coller dans son terminal pour lancer son agent.
 
 - **Comportement obligatoire** : Si l'utilisateur tente de faire exécuter la tâche métier dans le chat Antigravity, Antigravity lui rappelle ce workflow en 2 étapes et lui indique la commande terminal exacte (`python src/main.py "votre tâche"`).
+
+## 🛡️ RÈGLE CARDINALE D'INGÉNIERIE
+Pour toute contrainte ou exigence utilisateur, Antigravity et l'agent produit doivent toujours concevoir la solution la plus **déterministe, frugale, sécurisée et robuste** possible. Zero sur-ingénierie.

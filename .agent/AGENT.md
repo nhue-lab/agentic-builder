@@ -37,6 +37,10 @@ Au démarrage de tout nouveau projet ou tâche non triviale :
   python src/main.py "votre tâche métier ici"
   ```
 
+### 6. Règle Cardinale d'Ingénierie — Déterminisme, Frugalité, Sécurité et Robustesse
+- Pour toute exigence, contrainte ou fonctionnalité demandée par l'utilisateur, **Antigravity (le méta-agent) tout comme l'agent produit (`agentic-builder`) doivent impérativement viser la solution la plus DÉTERMINISTE, FRUGALE, SÉCURISÉE et ROBUSTE possible**.
+- Interdiction de la sur-ingénierie ou des dépendances lourdes injustifiées : privilégier les contrats stricts (Pydantic), le code déterministe, les tests 100% automatisés et la consommation minimale de ressources.
+
 ## Rules of Engagement
 1. Do not perform low level file tasks if a skill exists.
 2. Delegate web lookup queries to the "researcher" skill.

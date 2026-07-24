@@ -50,6 +50,10 @@ Fournir le template Python le plus propre, modulaire, sécurisé et frugal pour 
 #### 7. Caractère Optionnel et Conditionnel du Déploiement Cloud 24/7
 - **Décision (24/07/2026)** : Le déploiement cloud (Render / Telegram bot 24/7) est **strictement optionnel**. Si l'hébergement cloud n'est pas pertinent pour les objectifs d'un projet dérivé (ex: CLI local, script batch), il ne doit pas être imposé ni activé. L'agent fonctionne par défaut de façon autonome en CLI local.
 
+#### 8. Règle Cardinale d'Ingénierie — Déterminisme, Frugalité, Sécurité et Robustesse
+- **Décision (24/07/2026)** : Pour toute contrainte ou exigence demandée par l'utilisateur, Antigravity (le méta-agent) et l'agent produit (`agentic-builder`) doivent impérativement viser la solution la plus **déterministe, frugale, sécurisée et robuste** possible.
+- **Motif** : Éliminer la sur-ingénierie et les dépendances lourdes injustifiées au profit de garanties logicielles strictes (Pydantic, verrous physiques, tests 100% automatisés).
+
 ---
 
 ## 🔮 Jalon 3 — Evolutions Futures (Roadmap À Venir)
