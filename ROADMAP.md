@@ -47,6 +47,9 @@ Fournir le template Python le plus propre, modulaire, sécurisé et frugal pour 
 - **Décision (24/07/2026)** : Intégration d'un adaptateur Telegram Async Long-Polling (`httpx` natif) avec whitelist de sécurité (`ALLOWED_TELEGRAM_USERS`), couplé à un Blueprint `render.yaml` pour un déploiement gratuit 24/7 en tant que **Background Worker**.
 - **Motif** : Permettre de contrôler l'agent à tout moment via Telegram (même PC éteint), avec réponse instantanée (< 1s), suivi du statut `/status` et validation interactive `/approve` de la phase `/grill-me`.
 
+#### 7. Caractère Optionnel et Conditionnel du Déploiement Cloud 24/7
+- **Décision (24/07/2026)** : Le déploiement cloud (Render / Telegram bot 24/7) est **strictement optionnel**. Si l'hébergement cloud n'est pas pertinent pour les objectifs d'un projet dérivé (ex: CLI local, script batch), il ne doit pas être imposé ni activé. L'agent fonctionne par défaut de façon autonome en CLI local.
+
 ---
 
 ## 🔮 Jalon 3 — Evolutions Futures (Roadmap À Venir)

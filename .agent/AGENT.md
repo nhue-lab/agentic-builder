@@ -25,6 +25,10 @@ Au démarrage de tout nouveau projet ou tâche non triviale :
 - Le fichier `ROADMAP.md` à la racine du projet DOIT être systématiquement mis à jour dès qu'un choix architectural, technique, de modèle ou de gouvernance important est validé lors des discussions.
 - La date du jour doit être spécifiée à chaque mise à jour.
 
+### 4. Déploiement Cloud 24/7 (Render/Telegram) — Strictement Optionnel
+- L'intégration d'un bot Telegram et d'un déploiement Cloud 24/7 (Render) est **strictement optionnelle et conditionnelle**.
+- Si l'hébergement cloud ou l'accès 24/7 n'est pas pertinent pour le besoin d'un projet (ex: outil CLI local, script ponctuel, pipeline batch), **il ne faut PAS l'implémenter ni l'exiger**. L'agent s'exécute par défaut en mode CLI local frugal.
+
 ## Rules of Engagement
 1. Do not perform low level file tasks if a skill exists.
 2. Delegate web lookup queries to the "researcher" skill.
