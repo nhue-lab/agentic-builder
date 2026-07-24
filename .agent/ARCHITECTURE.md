@@ -16,3 +16,14 @@ The system separates tactical execution from strategic task evaluation:
 
 ## Rule of Permission Cloisonnement
 Any skill invoked by the LLM must be explicitly listed in `AgentState.injected_skills`. If a mismatch is detected, a `PermissionError` is raised.
+
+## Git Repository & Deployment Config
+- **Remote Origin URL** : `https://github.com/nhue-lab/agentic-builder.git`
+- **Default Branch** : `main`
+- **Commandes Rapides de Push** :
+  ```bash
+  git add .
+  git commit -m "feat: <description>"
+  git push origin main
+  ```
+
