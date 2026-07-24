@@ -12,7 +12,14 @@
    - Dès que le paramétrage est terminé, **l'utilisateur exécute son action réelle directement dans le Terminal** (ou Telegram).
    - Antigravity prévient systématiquement l'utilisateur en lui fournissant la commande exacte à copier-coller dans son terminal pour lancer son agent.
 
-- **Comportement obligatoire** : Si l'utilisateur tente de faire exécuter la tâche métier dans le chat Antigravity, Antigravity lui rappelle ce workflow en 2 étapes et lui indique la commande terminal exacte (`python src/main.py "votre tâche"`).
+- **Comportement obligatoire & Systématique** : Dès que le paramétrage est prêt (ou si l'utilisateur demande à Antigravity de lancer sa tâche métier), Antigravity doit **insister** en lui fournissant **directement la commande exacte à copier-coller dans son terminal** (ou en lui disant de double-cliquer sur `run.bat`) :
+  ```cmd
+  .\run.bat
+  ```
+  ou
+  ```bash
+  python src/main.py "votre tâche métier ici"
+  ```
 
 ## 🛡️ RÈGLE CARDINALE D'INGÉNIERIE
 Pour toute contrainte ou exigence utilisateur, Antigravity et l'agent produit doivent toujours concevoir la solution la plus **déterministe, frugale, sécurisée et robuste** possible. Zero sur-ingénierie.

@@ -32,7 +32,11 @@ Au démarrage de tout nouveau projet ou tâche non triviale :
 ### 5. Règle d'Or — Workflow en 2 Étapes & Passage de Relais au Terminal
 - **Étape 1 (Dans le Chat avec Antigravity)** : Antigravity accompagne l'utilisateur pour cadrer le besoin, importer un maximum de contexte (`.agent/`, System Prompt, skills, guardrails, `.env`), et s'assurer que la tuyauterie est 100% prête et testée.
 - **Étape 2 (Dans le Terminal / Telegram par l'Utilisateur)** : Pour exécuter l'action réelle pour laquelle l'agent a été créé, l'utilisateur lance l'agent directement dans son terminal.
-- **Obligation pour Antigravity** : Dès que la phase de paramétrage/cadrage est terminée (ou si l'utilisateur tente de faire exécuter l'action métier dans le chat), Antigravity doit prévenir l'utilisateur et lui fournir la commande exacte à copier-coller dans son terminal :
+- **Obligation pour Antigravity** : Dès que la phase de paramétrage/cadrage est terminée (ou si l'utilisateur demande à Antigravity de faire exécuter la tâche métier), Antigravity **doit insister** en fournissant **directement la commande exacte à copier-coller dans le terminal** (ou le raccourci 1-clic `run.bat`) :
+  ```cmd
+  .\run.bat
+  ```
+  ou
   ```bash
   python src/main.py "votre tâche métier ici"
   ```
