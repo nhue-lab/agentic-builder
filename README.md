@@ -23,21 +23,44 @@ The **Master Playbook** is a set of 8 software engineering pillars designed to b
    * *Strategic Loop (Ralph Loop)*: Independent solution evaluation by a `CritiqueAgent`. On failure, message context is reset with post-mortem feedback to prevent *context rot*.
 4. **Episodic Long-Term Memory (FTS5 SQLite)**: Inter-session memory store retaining lessons and key observations locally in `.agent/memory.db`.
 5. **Restricted Sub-Agent Delegation**: Isolated child agents with narrow skill whitelists and a physical recursion lock (`max_depth = 1`).
-6. **Read-Only `/grill-me` Lock (Phase 0)**: Hard block on modifying/destructive skills until the user approves the impact analysis and scope.
+6. **Read-Only `/grill-me` Lock (Phase 0)**: Hard block on modifying/destructive skills until the user approves the impact analysis and scope. Auto-injects approved scoping into the system prompt context.
 7. **Telemetry & Trajectory Export**: Token/cost tracking and generic JSONL trajectory exports (`.agent/trajectory_*.jsonl`) for benchmarks and fine-tuning.
 8. **Frugality & Determinism**: Free-tier first defaults (`gemini-2.5-flash-lite`), zero heavy dependencies, and 100% automated test coverage.
+
+---
+
+## 🔄 Two-Step Workflow (Context Setup vs Terminal Execution)
+
+To prevent identity confusion between the development assistant (Antigravity meta-agent) and the executed product agent (`agentic-builder`), follow this standard workflow:
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ Step 1: Context & Prompt Setup (Chat with Antigravity)  │
+│ Configure .agent/ rules, system prompts, skills, .env    │
+└───────────────────────────┬─────────────────────────────┘
+                            │ (Hand-off to Terminal)
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│ Step 2: Task Execution (In your Terminal / Telegram)    │
+│ python src/main.py "Your real-world business task"       │
+└─────────────────────────────────────────────────────────┘
+```
+
+1. **Step 1 — Setup with Antigravity (IDE Chat)**: Use Antigravity to architect your agent, tune `orchestrator_system.md`, configure skills, setup memory, and verify test suites.
+2. **Step 2 — Execution in Terminal (Product Hand-off)**: Run your actual task in your local terminal (or via Telegram). Antigravity will automatically remind you of this transition when setup is complete.
 
 ---
 
 ## Project Structure
 
 * **`.agent/` (Operational Documentation / SSOT)**:
-  * `AGENT.md`: Orchestrator identity, mandatory directives, and posture.
+  * `AGENT.md`: Orchestrator identity, mandatory directives, and 2-step workflow rules.
   * `CONTEXT.md`: Scope boundaries and allowed APIs.
   * `ARCHITECTURE.md`: Execution loop details, memory, and Git rules.
-  * `USER.md`: End-user behavioral profile.
+  * `USER.md`: End-user behavioral profile and Golden Identity Rule.
 * **`src/` (The Harness)**:
-  * `main.py`: CLI entry point for the execution loop.
+  * `main.py`: CLI & Telegram entry point router.
+  * `entrypoints/`: Execution entry points (`telegram_bot.py`).
   * `lms/`: LLM provider abstraction (Gemini, OpenAI) with deterministic failover.
   * `context/`: Pydantic agent state (`state.py`), sliding window, and episodic FTS5 memory (`memory_store.py`).
   * `harness/`: Guardrails (input/output filters, `PathSandbox`, `GrillMeGuard`), generic MCP client, and skill catalog (`SubAgentSkill`).
@@ -59,19 +82,33 @@ The **Master Playbook** is a set of 8 software engineering pillars designed to b
 3. **Configure Environment Variables**:
    Create a `.env` file at the root (see `.env.example`):
    ```env
+   # Mandatory free-tier Google AI Studio API Key (gemini-2.5-flash-lite)
    GEMINI_API_KEY=your_api_key_here
+
+   # Optional Telegram Bot & Render config
+   TELEGRAM_BOT_TOKEN=your_bot_token_here
+   ALLOWED_TELEGRAM_USERS=123456789,@username
    ```
 
 ---
 
 ## Usage
 
-Run the agent via the CLI:
+### 1. Local CLI Mode (Default)
+Run the agent directly in your terminal:
 ```bash
 python src/main.py "Research information about Model Context Protocol (MCP)"
 ```
-
 *Without an API key, the agent automatically runs in **simulation/mock mode** to validate loop logic and step transitions.*
+
+### 2. Telegram Bot Mode (Optional)
+Run as an interactive Telegram Bot (Long-Polling Async):
+```bash
+python src/main.py --mode telegram
+```
+
+### 3. Optional 24/7 Cloud Deployment (Render)
+Deploy as a free 24/7 **Background Worker** on Render.com using the included `render.yaml` Blueprint file.
 
 ---
 
