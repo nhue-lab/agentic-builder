@@ -94,8 +94,15 @@ To prevent identity confusion between the development assistant (Antigravity met
 
 ## Usage
 
-### 1. Local CLI Mode (Default)
-Run the agent directly in your terminal:
+### ⚡ 1-Click Launcher (Easiest!)
+- **Windows**: Double-click **`run.bat`** (or execute `.\run.bat` in your terminal). The launcher prompts you for your task or offers to resume any pending `/grill-me` session automatically!
+- **Linux/macOS**: Run `./run.sh` in your terminal.
+- **Telegram Bot 1-Click**: Double-click **`bot.bat`**.
+
+---
+
+### 💻 Manual CLI Mode
+Run the agent via the manual CLI command:
 ```bash
 python src/main.py "Research information about Model Context Protocol (MCP)"
 ```

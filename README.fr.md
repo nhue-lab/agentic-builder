@@ -94,8 +94,15 @@ Pour éviter toute confusion entre l'assistant de développement (le méta-agent
 
 ## Utilisation
 
-### 1. Mode CLI Local (Par défaut)
-Démarrez directement l'agent dans votre terminal :
+### ⚡ Mode 1-Clic (Le plus simple !)
+- **Windows** : Double-cliquez simplement sur **`run.bat`** (ou lancez `.\run.bat` dans votre terminal). Le script vous demandera votre tâche, ou vous proposera de reprendre une session `/grill-me` en cours !
+- **Linux/macOS** : Lancez simplement `./run.sh` dans votre terminal.
+- **Bot Telegram 1-Clic** : Double-cliquez sur **`bot.bat`**.
+
+---
+
+### 💻 Mode CLI Manuel
+Vous pouvez aussi démarrer l'agent directement via la commande CLI :
 ```bash
 python src/main.py "Rechercher des informations sur le protocole MCP"
 ```

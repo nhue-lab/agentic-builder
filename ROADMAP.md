@@ -54,6 +54,10 @@ Fournir le template Python le plus propre, modulaire, sécurisé et frugal pour 
 - **Décision (24/07/2026)** : Pour toute contrainte ou exigence demandée par l'utilisateur, Antigravity (le méta-agent) et l'agent produit (`agentic-builder`) doivent impérativement viser la solution la plus **déterministe, frugale, sécurisée et robuste** possible.
 - **Motif** : Éliminer la sur-ingénierie et les dépendances lourdes injustifiées au profit de garanties logicielles strictes (Pydantic, verrous physiques, tests 100% automatisés).
 
+#### 9. Lanceurs 1-Clic Cross-Platform (`run.bat`, `run.sh`, `bot.bat`)
+- **Décision (24/07/2026)** : Ajout de scripts d'exécution 1-clic pour Windows (`run.bat`, `bot.bat`) et Linux/macOS (`run.sh`).
+- **Motif** : Éliminer toute complexité d'exécution : double-clic pour lancer l'agent, saisir sa tâche ou reprendre une session `/grill-me` sans retenir de commandes CLI.
+
 ---
 
 ## 🔮 Jalon 3 — Evolutions Futures (Roadmap À Venir)
