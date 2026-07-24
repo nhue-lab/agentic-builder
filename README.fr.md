@@ -122,9 +122,13 @@ Déployer en tant que **Background Worker** gratuit 24/7 sur Render.com via le f
 ## Création d'un nouveau projet depuis ce template
 
 Pour instancier un projet autonome propre et prêt à la production :
-```bash
-python scripts/create_project.py ../mon-nouveau-projet
-```
+
+- **⚡ Mode 1-Clic (Le plus simple !)** : Double-cliquez sur **`new_project.bat`** (sur Windows) ou lancez `./new_project.sh` (sur Linux/macOS). Entrez simplement le nom de votre projet !
+- **💻 Mode Manuel** :
+  ```bash
+  python scripts/create_project.py ../mon-nouveau-projet
+  ```
+
 *Le script se chargera de cloner les structures nécessaires, de réinitialiser l'état local et de configurer l'environnement virtuel (`.venv`) dédié.*
 
 ---

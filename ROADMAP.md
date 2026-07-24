@@ -58,6 +58,10 @@ Fournir le template Python le plus propre, modulaire, sécurisé et frugal pour 
 - **Décision (24/07/2026)** : Ajout de scripts d'exécution 1-clic pour Windows (`run.bat`, `bot.bat`) et Linux/macOS (`run.sh`).
 - **Motif** : Éliminer toute complexité d'exécution : double-clic pour lancer l'agent, saisir sa tâche ou reprendre une session `/grill-me` sans retenir de commandes CLI.
 
+#### 10. Raccourcis de Création de Projet 1-Clic (`new_project.bat`, `new_project.sh`)
+- **Décision (24/07/2026)** : Ajout des scripts `new_project.bat` (Windows) et `new_project.sh` (Linux/macOS) à la racine.
+- **Motif** : Permettre d'instancier un nouveau projet propre d'un simple double-clic ou saisie du nom, sans retenir la syntaxe Python.
+
 ---
 
 ## 🔮 Jalon 3 — Evolutions Futures (Roadmap À Venir)

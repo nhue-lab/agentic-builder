@@ -122,9 +122,13 @@ Deploy as a free 24/7 **Background Worker** on Render.com using the included `re
 ## Creating a New Project from this Template
 
 To instantiate a clean, production-ready project:
-```bash
-python scripts/create_project.py ../my-new-project
-```
+
+- **⚡ 1-Click Mode (Easiest!)**: Double-click **`new_project.bat`** (on Windows) or run `./new_project.sh` (on Linux/macOS). Simply type your new project name when prompted!
+- **💻 Manual Mode**:
+  ```bash
+  python scripts/create_project.py ../my-new-project
+  ```
+
 *The script clones the structure, resets local state, and configures a dedicated virtual environment (`.venv`).*
 
 ---
