@@ -28,10 +28,22 @@ async def run_agent(task: Optional[str] = None, resume: bool = False):
         researcher_skill.name: researcher_skill,
         git_push_skill.name: git_push_skill
     }
-    
+
+    # 1b. UI Dashboard (optionnel — graceful degradation si FastAPI absent)
+    ui_skill = None
+    if settings.ui_enabled:
+        try:
+            from src.harness.skills.ui.skill import UISkill
+            ui_skill = UISkill(port=settings.ui_port)
+            ui_skill.launch_server()
+            logger.info(f"Dashboard UI disponible : http://localhost:{settings.ui_port}")
+        except Exception as e:
+            logger.warning(f"UISkill non disponible (graceful degradation) : {e}")
+            ui_skill = None
+
     # 2. Setup Loop router, Engine and TaskLoop
     router = LoopRouter(skills=skills_map)
-    engine = AgentEngine(router=router)
+    engine = AgentEngine(router=router, ui_skill=ui_skill)
     task_loop = TaskLoop(engine=engine)
     
     # 3. Setup AgentState: Resume or New
@@ -40,6 +52,7 @@ async def run_agent(task: Optional[str] = None, resume: bool = False):
         try:
             state = AgentState.load_from_file(".agent/state.json")
             state.metadata["grill_me_approved"] = True
+            state.status = AgentStatus.GRILL_ME_APPROVED
         except Exception as e:
             logger.error(f"Failed to resume session: {e}")
             sys.exit(1)
@@ -83,7 +96,12 @@ def main():
     if "--resume" in args:
         resume = True
         args.remove("--resume")
-        
+
+    # --ui flag : active le dashboard même si ui_enabled=false dans config
+    if "--ui" in args:
+        settings.ui_enabled = True
+        args.remove("--ui")
+
     task = args[0] if len(args) > 0 and not args[0].startswith("--") else None
     asyncio.run(run_agent(task, resume=resume))
 

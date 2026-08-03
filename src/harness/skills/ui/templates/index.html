@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic Builder — Dashboard</title>
+  <meta name="description" content="Monitoring temps réel de la boucle ReAct — visualisation des itérations, appels d'outils et état de l'agent." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ================================================================
+       DESIGN SYSTEM — Dark Glassmorphism
+       Palette HSL : Purple accent + Cyan accent
+    ================================================================ */
+    :root {
+      --bg-base:        hsl(260, 30%, 6%);
+      --bg-surface:     hsl(260, 25%, 10%);
+      --bg-card:        hsl(260, 20%, 13%);
+      --bg-glass:       hsla(260, 20%, 16%, 0.7);
+      --border-subtle:  hsla(260, 40%, 60%, 0.12);
+      --border-active:  hsla(270, 80%, 70%, 0.35);
+
+      --accent-purple:  hsl(270, 80%, 65%);
+      --accent-purple2: hsl(285, 75%, 70%);
+      --accent-cyan:    hsl(185, 80%, 55%);
+      --accent-cyan2:   hsl(195, 75%, 60%);
+      --accent-green:   hsl(145, 70%, 52%);
+      --accent-red:     hsl(0, 75%, 62%);
+      --accent-orange:  hsl(35, 90%, 60%);
+
+      --text-primary:   hsl(260, 15%, 92%);
+      --text-secondary: hsl(260, 10%, 62%);
+      --text-muted:     hsl(260, 8%, 42%);
+      --text-code:      hsl(185, 70%, 70%);
+
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+
+      --shadow-glow-purple: 0 0 24px hsla(270, 80%, 65%, 0.2);
+      --shadow-glow-cyan:   0 0 24px hsla(185, 80%, 55%, 0.2);
+      --shadow-card: 0 4px 24px hsla(260, 50%, 5%, 0.6);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-sans);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+
+    /* Subtle animated background gradient */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 10%, hsla(270, 80%, 30%, 0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 30% at 80% 85%, hsla(185, 80%, 25%, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ================================================================
+       LAYOUT — 3 colonnes + header
+    ================================================================ */
+    .layout {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-rows: 64px 1fr;
+      grid-template-columns: 280px 1fr 320px;
+      height: 100vh;
+      gap: 0;
+    }
+
+    /* ================================================================
+       HEADER
+    ================================================================ */
+    .header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 16px;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .header-logo {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+    }
+
+    /* Provider / Model badge */
+    .badge-provider {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+    }
+
+    .badge-provider.active {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 12px hsla(185, 80%, 55%, 0.15);
+    }
+
+    .badge-provider .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: background 0.3s ease;
+    }
+
+    .badge-provider.active .dot {
+      background: var(--accent-cyan);
+    }
+
+    /* Status badge */
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      transition: all 0.4s ease;
+    }
+
+    .status-badge .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .status-idle    { background: hsla(260,20%,20%,0.8); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+    .status-idle .status-dot { background: var(--text-muted); }
+
+    .status-running { background: hsla(270,60%,20%,0.8); color: var(--accent-purple); border: 1px solid hsla(270,80%,65%,0.3); box-shadow: var(--shadow-glow-purple); }
+    .status-running .status-dot { background: var(--accent-purple); animation: pulse 1.4s ease-in-out infinite; }
+
+    .status-success { background: hsla(145,50%,15%,0.8); color: var(--accent-green); border: 1px solid hsla(145,70%,52%,0.3); }
+    .status-success .status-dot { background: var(--accent-green); }
+
+    .status-failed  { background: hsla(0,50%,15%,0.8); color: var(--accent-red); border: 1px solid hsla(0,75%,62%,0.3); }
+    .status-failed .status-dot  { background: var(--accent-red); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    /* Iteration counter */
+    .iter-counter {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .iter-counter span {
+      color: var(--accent-purple);
+      font-weight: 500;
+    }
+
+    /* ================================================================
+       LEFT PANEL — ReAct Loop Live
+    ================================================================ */
+    .panel-left {
+      grid-row: 2;
+      grid-column: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+
+    /* ================================================================
+       CENTER PANEL — Main log stream
+    ================================================================ */
+    .panel-center {
+      grid-row: 2;
+      grid-column: 2;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ================================================================
+       RIGHT PANEL — Reasoning (thinking models)
+    ================================================================ */
+    .panel-right {
+      grid-row: 2;
+      grid-column: 3;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+
+    /* ================================================================
+       PANEL ANATOMY (shared)
+    ================================================================ */
+    .panel-header {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .panel-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .panel-count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Custom scrollbar */
+    .panel-body::-webkit-scrollbar { width: 4px; }
+    .panel-body::-webkit-scrollbar-track { background: transparent; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 2px; }
+
+    /* ================================================================
+       ITERATION CARDS (Left panel)
+    ================================================================ */
+    .iter-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      cursor: default;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+      animation: slideUp 0.25s ease both;
+    }
+
+    .iter-card:hover {
+      border-color: var(--border-active);
+      box-shadow: var(--shadow-glow-purple);
+    }
+
+    .iter-card.active {
+      border-color: var(--accent-purple);
+      box-shadow: var(--shadow-glow-purple);
+    }
+
+    .iter-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .iter-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent-purple);
+    }
+
+    .iter-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .iter-skill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      background: hsla(185, 80%, 55%, 0.1);
+      border: 1px solid hsla(185, 80%, 55%, 0.2);
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent-cyan);
+      margin-top: 4px;
+    }
+
+    .iter-thought {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* ================================================================
+       LOG STREAM (Center panel)
+    ================================================================ */
+    .log-entry {
+      display: flex;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border-left: 2px solid transparent;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      animation: slideUp 0.2s ease both;
+      transition: background 0.2s ease;
+    }
+
+    .log-entry:hover { background: var(--bg-card); }
+
+    .log-ts {
+      color: var(--text-muted);
+      flex-shrink: 0;
+      font-size: 10px;
+      margin-top: 2px;
+    }
+
+    .log-content { flex: 1; word-break: break-word; }
+
+    .log-entry.type-ITERATION_START { border-left-color: var(--accent-purple); }
+    .log-entry.type-ITERATION_START .log-content { color: var(--accent-purple); }
+
+    .log-entry.type-TOOL_CALL {
+      border-left-color: var(--accent-cyan);
+      background: hsla(185, 80%, 55%, 0.04);
+    }
+    .log-entry.type-TOOL_CALL .log-content { color: var(--text-primary); }
+    .log-entry.type-TOOL_CALL .skill-name {
+      color: var(--accent-cyan);
+      font-weight: 500;
+    }
+
+    .log-entry.type-TOOL_RESULT { border-left-color: var(--accent-green); }
+    .log-entry.type-TOOL_RESULT .log-content { color: var(--text-secondary); }
+    .log-entry.type-TOOL_RESULT.failed { border-left-color: var(--accent-red); }
+    .log-entry.type-TOOL_RESULT.failed .log-content { color: var(--accent-red); }
+
+    .log-entry.type-AGENT_DONE.success { border-left-color: var(--accent-green); }
+    .log-entry.type-AGENT_DONE.success .log-content { color: var(--accent-green); font-weight: 500; }
+    .log-entry.type-AGENT_DONE.failed  { border-left-color: var(--accent-red); }
+    .log-entry.type-AGENT_DONE.failed .log-content  { color: var(--accent-red); font-weight: 500; }
+
+    .log-entry.type-ERROR { border-left-color: var(--accent-orange); }
+    .log-entry.type-ERROR .log-content { color: var(--accent-orange); }
+
+    /* ================================================================
+       REASONING PANEL (Right — thinking models)
+    ================================================================ */
+    .reasoning-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .reasoning-empty-icon { font-size: 28px; opacity: 0.4; }
+
+    .reasoning-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      animation: slideUp 0.25s ease both;
+    }
+
+    .reasoning-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-subtle);
+      user-select: none;
+    }
+
+    .reasoning-block-header:hover { background: var(--bg-glass); }
+
+    .reasoning-block-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-purple2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .reasoning-block-chevron {
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+
+    .reasoning-block.collapsed .reasoning-block-chevron { transform: rotate(-90deg); }
+    .reasoning-block.collapsed .reasoning-block-body { display: none; }
+
+    .reasoning-block-body {
+      padding: 10px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    /* ================================================================
+       EMPTY STATE
+    ================================================================ */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 10px;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .empty-icon { font-size: 32px; opacity: 0.3; animation: breathe 3s ease-in-out infinite; }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(1.05); }
+    }
+
+    /* ================================================================
+       ANIMATIONS
+    ================================================================ */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes successPop {
+      0%   { transform: scale(0.95); opacity: 0.8; }
+      60%  { transform: scale(1.02); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-pop { animation: successPop 0.4s ease both; }
+
+    /* Connection indicator */
+    .connection-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      transition: background 0.5s ease;
+    }
+
+    .connection-dot.connected {
+      background: var(--accent-green);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    .connection-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .connection-status { display: flex; align-items: center; gap: 6px; }
+  </style>
+</head>
+<body>
+  <div class="layout" id="layout">
+
+    <!-- ============================================================
+         HEADER
+    ============================================================ -->
+    <header class="header" role="banner">
+      <div class="header-brand">
+        <div class="header-logo" aria-hidden="true">⚡</div>
+        <span class="header-title">Agentic Builder</span>
+      </div>
+
+      <div class="header-meta">
+        <!-- Provider/Model badge -->
+        <div class="badge-provider" id="badge-provider" aria-label="Fournisseur LLM actif">
+          <span class="dot"></span>
+          <span id="provider-label">En attente…</span>
+        </div>
+
+        <!-- Iteration counter -->
+        <div class="iter-counter" aria-live="polite" aria-atomic="true">
+          Iter <span id="iter-current">0</span> / <span id="iter-max">—</span>
+        </div>
+
+        <!-- Status -->
+        <div class="status-badge status-idle" id="status-badge" role="status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="status-label">Idle</span>
+        </div>
+
+        <!-- SSE connection -->
+        <div class="connection-status" title="Connexion SSE">
+          <div class="connection-dot" id="connection-dot"></div>
+          <span class="connection-label" id="connection-label">Déconnecté</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================================
+         LEFT PANEL — ReAct Loop Timeline
+    ============================================================ -->
+    <aside class="panel-left" aria-label="Timeline des itérations ReAct">
+      <div class="panel-header">
+        <span class="panel-label">Itérations</span>
+        <span class="panel-count" id="iter-count">0</span>
+      </div>
+      <div class="panel-body" id="iterations-list">
+        <div class="empty-state" id="iter-empty">
+          <span class="empty-icon" aria-hidden="true">🔄</span>
+          <span>En attente du démarrage<br/>de l'agent…</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============================================================
+         CENTER PANEL — Log Stream
+    ============================================================ -->
+    <main class="panel-center" aria-label="Flux de logs de l'agent">
+      <div class="panel-header">
+        <span class="panel-label">Flux d'événements</span>
+        <span class="panel-count" id="log-count">0</span>
+      </div>
+      <div class="panel-body" id="log-stream">
+        <div class="empty-state" id="log-empty">
+          <span class="empty-icon" aria-hidden="true">📡</span>
+          <span>Connexion SSE active…<br/>Les événements apparaîtront ici.</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- ============================================================
+         RIGHT PANEL — Reasoning (thinking models)
+    ============================================================ -->
+    <aside class="panel-right" aria-label="Tokens de raisonnement (thinking models)">
+      <div class="panel-header">
+        <span class="panel-label">Raisonnement</span>
+        <span class="panel-count" id="reasoning-count">0</span>
+      </div>
+      <div class="panel-body" id="reasoning-panel">
+        <div class="reasoning-empty" id="reasoning-empty">
+          <span class="reasoning-empty-icon" aria-hidden="true">🧠</span>
+          <span>Les tokens de raisonnement<br/>des thinking models<br/>apparaîtront ici.</span>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    /* ================================================================
+       AGENTIC BUILDER DASHBOARD — Vanilla JS SSE Client
+    ================================================================ */
+
+    // --- State ---
+    let logCount = 0;
+    let iterCount = 0;
+    let reasoningCount = 0;
+    let currentIteration = 0;
+    let lastIterCard = null;
+
+    // --- DOM refs ---
+    const iterList      = document.getElementById('iterations-list');
+    const logStream     = document.getElementById('log-stream');
+    const reasoningPanel = document.getElementById('reasoning-panel');
+    const statusBadge   = document.getElementById('status-badge');
+    const statusLabel   = document.getElementById('status-label');
+    const iterCurrent   = document.getElementById('iter-current');
+    const iterMax       = document.getElementById('iter-max');
+    const iterCountEl   = document.getElementById('iter-count');
+    const logCountEl    = document.getElementById('log-count');
+    const reasoningCountEl = document.getElementById('reasoning-count');
+    const connDot       = document.getElementById('connection-dot');
+    const connLabel     = document.getElementById('connection-label');
+    const badgeProvider = document.getElementById('badge-provider');
+    const providerLabel = document.getElementById('provider-label');
+
+    // Empty state elements
+    const iterEmpty     = document.getElementById('iter-empty');
+    const logEmpty      = document.getElementById('log-empty');
+    const reasoningEmpty = document.getElementById('reasoning-empty');
+
+    // --- Utils ---
+    function fmtTime(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleTimeString('fr-FR', { hour12: false });
+      } catch { return '--:--:--'; }
+    }
+
+    function truncate(s, n = 120) {
+      return s && s.length > n ? s.slice(0, n) + '…' : (s || '');
+    }
+
+    function scrollBottom(el) {
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function setStatus(cls, label) {
+      statusBadge.className = 'status-badge ' + cls;
+      statusLabel.textContent = label;
+    }
+
+    function updateProvider(provider, model) {
+      if (provider || model) {
+        const text = [provider, model].filter(Boolean).join(' · ');
+        providerLabel.textContent = text;
+        badgeProvider.classList.add('active');
+      }
+    }
+
+    // --- Iteration card (left panel) ---
+    function addIterCard(event) {
+      const { iteration, max_iterations } = event.payload;
+      const provider = event.provider;
+      const model = event.model;
+
+      if (iterEmpty) iterEmpty.remove();
+
+      // Deactivate previous card
+      if (lastIterCard) lastIterCard.classList.remove('active');
+
+      const card = document.createElement('div');
+      card.className = 'iter-card active';
+      card.id = `iter-card-${iteration}`;
+
+      const timeStr = fmtTime(event.timestamp);
+
+      card.innerHTML = `
+        <div class="iter-card-header">
+          <span class="iter-num">#${iteration}</span>
+          <span class="iter-time">${timeStr}</span>
+        </div>
+        <div class="iter-thought iter-thought-placeholder" style="color:var(--text-muted);font-style:italic;">Raisonnement en cours…</div>
+      `;
+
+      iterList.appendChild(card);
+      lastIterCard = card;
+      iterCount++;
+      iterCountEl.textContent = iterCount;
+      iterCurrent.textContent = iteration;
+      if (max_iterations) iterMax.textContent = max_iterations;
+
+      scrollBottom(iterList);
+      return card;
+    }
+
+    function updateIterCardWithToolCall(iteration, skillName, thought) {
+      const card = document.getElementById(`iter-card-${iteration}`);
+      if (!card) return;
+      const thoughtEl = card.querySelector('.iter-thought-placeholder');
+      if (thoughtEl) {
+        thoughtEl.textContent = truncate(thought, 80);
+        thoughtEl.classList.remove('iter-thought-placeholder');
+        thoughtEl.style.fontStyle = '';
+        thoughtEl.style.color = '';
+      }
+      const tag = document.createElement('span');
+      tag.className = 'iter-skill-tag';
+      tag.textContent = `⚙ ${skillName}`;
+      card.appendChild(tag);
+    }
+
+    // --- Log entry (center panel) ---
+    function addLog(type, content, extra = {}) {
+      if (logEmpty) logEmpty.remove();
+
+      const entry = document.createElement('div');
+      const extraClass = extra.cssClass || '';
+      entry.className = `log-entry type-${type} ${extraClass}`;
+
+      const ts = fmtTime(extra.timestamp || new Date().toISOString());
+
+      entry.innerHTML = `
+        <span class="log-ts">${ts}</span>
+        <span class="log-content">${content}</span>
+      `;
+
+      logStream.appendChild(entry);
+      logCount++;
+      logCountEl.textContent = logCount;
+      scrollBottom(logStream);
+    }
+
+    // --- Reasoning block (right panel) ---
+    function addReasoningBlock(iteration, content, provider, model) {
+      if (reasoningEmpty) reasoningEmpty.remove();
+
+      const block = document.createElement('div');
+      block.className = 'reasoning-block';
+
+      const title = `<think> · Iter #${iteration}${provider ? ` · ${provider}` : ''}`;
+
+      block.innerHTML = `
+        <div class="reasoning-block-header" role="button" tabindex="0" aria-expanded="true">
+          <span class="reasoning-block-title">🧠 ${title}</span>
+          <span class="reasoning-block-chevron">▾</span>
+        </div>
+        <div class="reasoning-block-body">${escHtml(content)}</div>
+      `;
+
+      // Toggle collapse
+      const header = block.querySelector('.reasoning-block-header');
+      header.addEventListener('click', () => {
+        block.classList.toggle('collapsed');
+        header.setAttribute('aria-expanded', !block.classList.contains('collapsed'));
+      });
+      header.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') header.click();
+      });
+
+      reasoningPanel.appendChild(block);
+      reasoningCount++;
+      reasoningCountEl.textContent = reasoningCount;
+      scrollBottom(reasoningPanel);
+    }
+
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // ================================================================
+    // EVENT HANDLERS
+    // ================================================================
+    function handleEvent(event) {
+      const { type, payload, timestamp, provider, model } = event;
+
+      // Always update provider badge if available
+      if (provider || model) updateProvider(provider, model);
+
+      switch (type) {
+
+        case 'ITERATION_START': {
+          setStatus('status-running', 'Running');
+          addIterCard(event);
+          addLog(type,
+            `▶ Itération <strong>${payload.iteration}</strong> / ${payload.max_iterations || '?'} démarrée`,
+            { timestamp, cssClass: '' }
+          );
+          currentIteration = payload.iteration;
+          break;
+        }
+
+        case 'TOOL_CALL': {
+          const skill = `<span class="skill-name">${escHtml(payload.skill_name)}</span>`;
+          const thought = escHtml(truncate(payload.thought, 100));
+          addLog(type,
+            `⚙ Skill ${skill} appelée<br/><span style="color:var(--text-muted);font-size:11px;">${thought}</span>`,
+            { timestamp }
+          );
+          updateIterCardWithToolCall(currentIteration, payload.skill_name, payload.thought);
+          break;
+        }
+
+        case 'TOOL_RESULT': {
+          const ok = payload.success;
+          const icon = ok ? '✓' : '✗';
+          const output = escHtml(truncate(payload.output, 150));
+          addLog(type,
+            `${icon} <strong>${escHtml(payload.skill_name)}</strong> → ${output}`,
+            { timestamp, cssClass: ok ? '' : 'failed' }
+          );
+          break;
+        }
+
+        case 'AGENT_DONE': {
+          const isSuccess = payload.status === 'SUCCESS' || payload.status === 'success';
+          const icon = isSuccess ? '🎉' : '💥';
+          const cssClass = isSuccess ? 'success success-pop' : 'failed';
+          setStatus(isSuccess ? 'status-success' : 'status-failed', isSuccess ? 'Success' : 'Failed');
+          addLog(type,
+            `${icon} Agent terminé — <strong>${escHtml(payload.status)}</strong> (${payload.iterations} itérations)${payload.error ? '<br/>Erreur : ' + escHtml(payload.error) : ''}`,
+            { timestamp, cssClass }
+          );
+          if (lastIterCard) lastIterCard.classList.remove('active');
+          break;
+        }
+
+        case 'ERROR': {
+          addLog(type,
+            `⚠ Iter #${payload.iteration} — ${escHtml(payload.message)}`,
+            { timestamp }
+          );
+          break;
+        }
+
+        case 'REASONING_TOKEN': {
+          addReasoningBlock(payload.iteration, payload.content, provider, model);
+          addLog(type,
+            `🧠 Reasoning token reçu (iter #${payload.iteration}, ${(payload.content || '').length} chars)`,
+            { timestamp, cssClass: '' }
+          );
+          break;
+        }
+
+        default:
+          addLog('type-unknown', `Unknown event: ${escHtml(type)}`, { timestamp });
+      }
+    }
+
+    // ================================================================
+    // SSE CONNECTION
+    // ================================================================
+    let es = null;
+    let reconnectTimer = null;
+
+    function connect() {
+      if (es) { es.close(); es = null; }
+
+      connDot.classList.remove('connected');
+      connLabel.textContent = 'Connexion…';
+
+      es = new EventSource('/events');
+
+      es.onopen = () => {
+        connDot.classList.add('connected');
+        connLabel.textContent = 'Connecté';
+      };
+
+      es.onmessage = (e) => {
+        try {
+          const event = JSON.parse(e.data);
+          handleEvent(event);
+        } catch (err) {
+          console.error('[Dashboard] Failed to parse SSE event:', err, e.data);
+        }
+      };
+
+      es.onerror = () => {
+        connDot.classList.remove('connected');
+        connLabel.textContent = 'Reconnexion…';
+        es.close();
+        es = null;
+        // Reconnexion exponentielle simple (max 8s)
+        const delay = Math.min(8000, (reconnectTimer ? 8000 : 2000));
+        reconnectTimer = setTimeout(connect, delay);
+      };
+    }
+
+    // Start connection
+    connect();
+  </script>
+</body>
+</html>

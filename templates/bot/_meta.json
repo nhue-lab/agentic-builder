@@ -1,0 +1,7 @@
+{
+  "type": "bot",
+  "name": "Telegram / Chat Bot Agent",
+  "description": "Async polling Telegram/Chat Bot wrapper with HITL approve/status commands and ReAct execution.",
+  "available_skills": ["researcher", "tester", "subagent"],
+  "default_skills": ["researcher", "tester"]
+}

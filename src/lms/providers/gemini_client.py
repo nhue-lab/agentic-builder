@@ -31,15 +31,24 @@ class GeminiClient(BaseLLMClient):
                     mock_dict["is_acceptable"] = True
                 if "feedback" in response_schema.model_fields:
                     mock_dict["feedback"] = "Excellent results."
+                if "action" in response_schema.model_fields:
+                    mock_dict["action"] = "call_skill"
+                    mock_dict["thought"] = "Executing skill in simulation mode."
+                    mock_dict["skill_name"] = "researcher"
+                    mock_dict["arguments"] = {"query": "LLM benchmark cost per task data"}
                 for k, field in response_schema.model_fields.items():
                     if k not in mock_dict:
                         # Inspect annotation safely
                         annotation_str = str(field.annotation)
-                        if "str" in annotation_str:
+                        if "dict" in annotation_str.lower():
+                            mock_dict[k] = {}
+                        elif "list" in annotation_str.lower():
+                            mock_dict[k] = ["mock_value"]
+                        elif "str" in annotation_str.lower():
                             mock_dict[k] = "mock_value"
-                        elif "bool" in annotation_str:
+                        elif "bool" in annotation_str.lower():
                             mock_dict[k] = True
-                        elif "int" in annotation_str or "float" in annotation_str:
+                        elif "int" in annotation_str.lower() or "float" in annotation_str.lower():
                             mock_dict[k] = 1
                         else:
                             mock_dict[k] = {}
@@ -91,11 +100,18 @@ class GeminiClient(BaseLLMClient):
         )
         if response_schema:
             config.response_mime_type = "application/json"
-            config.response_schema = response_schema
+            if hasattr(response_schema, "model_json_schema"):
+                raw_schema = response_schema.model_json_schema()
+                def _strip_additional_properties(d):
+                    if isinstance(d, dict):
+                        return {k: _strip_additional_properties(v) for k, v in d.items() if k != "additionalProperties"}
+                    elif isinstance(d, list):
+                        return [_strip_additional_properties(x) for x in d]
+                    return d
+                config.response_schema = _strip_additional_properties(raw_schema)
+            else:
+                config.response_schema = response_schema
 
-        
-        # run synchronously in executor or await directly if SDK supports async (it has client.aio.models.generate_content)
-        # We can use the async client if available:
         target_model = kwargs.get("model", self.model_name)
         response = await self.client.aio.models.generate_content(
             model=target_model,

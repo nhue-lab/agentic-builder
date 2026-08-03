@@ -16,7 +16,7 @@ class GrillMeGuard:
             return state
 
         # If it's already approved, transition to RUNNING and inject validated directive
-        if state.status == AgentStatus.GRILL_ME_APPROVED:
+        if state.status == AgentStatus.GRILL_ME_APPROVED or state.metadata.get("grill_me_approved"):
             logger.info("Task approved by /grill-me. Injecting approved impact directive into system prompt context.")
             report = ImpactReport.load()
             if report:
@@ -87,6 +87,9 @@ class GrillMeGuard:
         ))
 
         # Print report in terminal
-        print(report.to_terminal())
+        try:
+            print(report.to_terminal())
+        except UnicodeEncodeError:
+            print(report.to_terminal().encode('ascii', errors='replace').decode('ascii'))
 
         return state

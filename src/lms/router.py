@@ -63,6 +63,10 @@ class LLMRouter:
             api_key=settings.openai_api_key,
             model_name=settings.fallback_model
         )
+        # Model-awareness : exposés après chaque generate() pour enrichir les UIEvents
+        # sans coupler UISkill au router directement (voir ROADMAP Jalon 2.5)
+        self.last_used_provider: str = "gemini"
+        self.last_used_model: str = settings.model
 
     async def generate(
         self, 
@@ -84,11 +88,15 @@ class LLMRouter:
                     if attempt.retry_state.attempt_number > 1:
                         logger.info(f"Retrying primary client call (attempt {attempt.retry_state.attempt_number})")
                     response = await self.primary_client.generate(messages, response_schema=response_schema, **kwargs)
+                    self.last_used_provider = "gemini"
+                    self.last_used_model = settings.model
                     return response
         except Exception as e:
             logger.warning(f"Primary client failed after all retries or with a non-transient exception: {str(e)}. Attempting fallback client: {settings.fallback_model}")
             try:
                 response = await self.fallback_client.generate(messages, response_schema=response_schema, **kwargs)
+                self.last_used_provider = "openai"
+                self.last_used_model = settings.fallback_model
                 return response
             except Exception as fe:
                 logger.error(f"Fallback client also failed: {str(fe)}")

@@ -8,7 +8,9 @@
 
 ---
 
-**Agentic Builder** is a modern, production-grade template for building autonomous AI agents in Python using the **ReAct** (Reasoning + Action) pattern and the **Master Playbook** engineering principles.
+**Agentic Builder** is a modern, production-grade **SDK and CLI Scaffold Engine** for building, scaffolding, and patching autonomous AI agents in Python using the **ReAct** (Reasoning + Action) pattern and **Master Playbook** engineering principles.
+
+It enables platform meta-agents (Antigravity, CodeX, Cloud-Code, Hermes) to scaffold new autonomous projects via CLI and patch them incrementally (`--add-skill`, `--add-ui`, `--set-model`).
 
 ---
 
@@ -116,6 +118,33 @@ python src/main.py --mode telegram
 
 ### 3. Optional 24/7 Cloud Deployment (Render)
 Deploy as a free 24/7 **Background Worker** on Render.com using the included `render.yaml` Blueprint file.
+
+## 🛠️ SDK CLI Commands (For Meta-Agents & Developers)
+
+Platform meta-agents (Antigravity, CodeX, Cloud-Code, Hermes) call the SDK CLI to scaffold new agents and patch existing projects:
+
+### 1. Scaffold a New Project (`new`)
+```bash
+python -m src.cli new my_agent --type react --skills researcher,tester --model gemini-2.5-flash-lite --json
+```
+
+### 2. Patch an Existing Project (`add`)
+```bash
+# Add a skill
+python -m src.cli add skill git_push --project-dir ../my_agent --json
+
+# Enable UI dashboard
+python -m src.cli add ui --project-dir ../my_agent --port 7860 --json
+
+# Change primary/fallback model
+python -m src.cli add model gemini-2.5-pro --fallback openai/gpt-4o --project-dir ../my_agent --json
+```
+
+### 3. Inspect Project & List Assets (`info`, `list`)
+```bash
+python -m src.cli info --project-dir ../my_agent --json
+python -m src.cli list types --json
+```
 
 ---
 

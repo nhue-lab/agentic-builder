@@ -1,0 +1,7 @@
+{
+  "type": "react",
+  "name": "ReAct Agent",
+  "description": "Autonomous ReAct agent loop with episodic memory, tool calling, trajectory logging, and optional UI.",
+  "available_skills": ["researcher", "tester", "git_push", "subagent"],
+  "default_skills": ["researcher", "tester", "subagent"]
+}

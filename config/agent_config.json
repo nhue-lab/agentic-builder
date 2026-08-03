@@ -5,5 +5,7 @@
   "max_consecutive_iterations": 15,
   "system_prompt_path": "config/system_prompt.md",
   "github_repository": "https://github.com/nhue-lab/agentic-builder.git",
-  "default_branch": "main"
+  "default_branch": "main",
+  "ui_enabled": false,
+  "ui_port": 7860
 }

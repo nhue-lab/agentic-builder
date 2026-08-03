@@ -34,7 +34,7 @@ dev = [
 ]
 
 [project.scripts]
-agentic-builder = "src.main:main"
+agentic-builder = "src.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

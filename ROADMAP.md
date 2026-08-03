@@ -64,9 +64,54 @@ Fournir le template Python le plus propre, modulaire, sécurisé et frugal pour 
 
 ---
 
-## 🔮 Jalon 3 — Evolutions Futures (Roadmap À Venir)
+### 🟢 Jalon 2.5 — Couche UI Locale (Dashboard Temps Réel) (02 Août 2026)
+
+#### 11. UISkill — Composant Infra Observer (non-callable par le LLM)
+- **Décision (02/08/2026)** : La UISkill est un composant infra injecté directement dans `AgentEngine` (pattern Observer), **pas un skill LLM-callable**. L'engine appelle `await self.ui_skill.emit_event(...)` après chaque étape ReAct.
+- **Motif** : Séparation stricte des responsabilités — le LLM ne doit pas pouvoir déclencher l'UI lui-même.
+
+#### 12. Stack Technique UI — FastAPI SSE + Vanilla JS
+- **Décision (02/08/2026)** : FastAPI async intégré au process via un thread daemon, SSE (Server-Sent Events) pour le push temps réel, dashboard Vanilla JS + CSS pur (glassmorphism dark, palette HSL purple/cyan, Inter + JetBrains Mono).
+- **Motif** : Zéro dépendance JS côté client, SSE natif HTTP (pas de WebSocket overhead), graceful degradation si FastAPI absent.
+
+#### 13. Règle d'Agnosticisme Partiel du Harness (Insight Critique)
+- **Décision (02/08/2026)** : Le harness est agnostique sur la couche **System & Safety** (sandbox, guardrails, PermissionError) mais doit s'adapter aux spécificités de chaque famille de modèles sur 3 points :
+  1. **Parsing Tool Calling** : chaque provider a son format natif (XML/JSON Anthropic, JSON Schema OpenAI, balises texte DeepSeek).
+  2. **Context Engineering** : injection du system prompt et des règles selon les biais d'attention du modèle.
+  3. **Reasoning Tokens** : isolation des blocs `<think>...</think>` (DeepSeek-R1, Claude Thinking, o1/o3) avant parsing du `LLMDecision`.
+- **Implémentation** : `_extract_reasoning_tokens()` dans `engine.py`, event `REASONING_TOKEN` dans `UIEvent`, panneau dédié dans le dashboard.
+
+#### 14. Model-Awareness du LLMRouter
+- **Décision (02/08/2026)** : Le singleton `llm_router` expose `last_used_provider` et `last_used_model` après chaque `generate()`. L'engine lit ces attributs pour enrichir les UIEvents sans coupler UISkill au router.
+- **Motif** : Le dashboard affiche en temps réel si l'agent utilise le provider primaire (Gemini) ou le fallback (OpenAI).
+
+#### 15. Frugalité UI — Off by Default + Graceful Degradation
+- **Décision (02/08/2026)** : `ui_enabled: false` dans `agent_config.json`. Activation via `--ui` flag CLI ou `.env`. Si FastAPI/uvicorn manquent : log warning, pas d'exception, agent continue normalement.
+
+---
+
+---
+
+### 🟢 Jalon 3 — SDK Scaffold & Moteur de Patching Incrémental (02 Août 2026)
+
+#### 16. Agentic Builder comme SDK CLI pour Méta-Agents
+- **Décision (02/08/2026)** : `agentic-builder` devient un SDK de scaffold CLI appelé par les méta-agents des plateformes agentiques (Antigravity, CodeX, Cloud-Code, Hermes).
+- **Motif** : La phase de cadrage (`/grill-me`) s'effectue dans la plateforme hôte. `agentic-builder` intervient en moteur déterministe pour scaffolder ou patcher un agent sans faire de chat redondant.
+
+#### 17. Architecture CLI — `new`, `add`, `list`, `info`
+- **`new`** : Génère un projet d'agent autonome avec `pyproject.toml`, `_meta.json`, `config/`, `src/`, `tests/` et launchers `run.bat`/`run.sh`.
+- **`add`** : Effectue un patch incrémental sur un projet existant (`add skill <name>`, `add ui [--port 7860]`, `add model <name>`).
+- **`list` & `info`** : Expose les types et skills disponibles, ainsi que les métadonnées d'un projet pour le parsing JSON du méta-agent.
+
+#### 18. Règle "Terminal First"
+- **Décision (02/08/2026)** : Tout projet scaffoldé commence **toujours par le terminal** (`ui_enabled: false`). L'UI n'est ajoutée qu'ultérieurement via `agentic-builder add ui` si l'usage le confirme.
+
+---
+
+## 🔮 Jalon 4 — Evolutions Futures (Roadmap À Venir)
 
 - [ ] **Sandboxing Docker de Code Arbitraire** : Intégrer un wrapper Docker léger pour exécuter des scripts Python/Bash générés dynamiquement par l'agent dans une micro-VM étanche.
 - [ ] **Communication Directe Inter-Agents (Swarm Protocol)** : Étendre le système de sub-agents pour permettre un canal de communication bidirectionnel synchrone entre agents pairs.
-- [ ] **Dashboard de Visualisation des Trajectoires** : Petit outil CLI / web local pour visualiser et rejouer les fichiers `.jsonl` de trajectoire.
+- [x] **Dashboard de Visualisation des Trajectoires** : ~~Petit outil CLI / web local pour visualiser et rejouer les fichiers `.jsonl` de trajectoire.~~ → Couvert par Jalon 2.5 (UISkill + SSE dashboard).
 - [ ] **Auto-Correction de Code par AST/Linter** : Ajouter un pass d'analyse statique automatique avant la phase de critique.
+- [ ] **Adapters Thinking Models** : Étendre `_extract_reasoning_tokens()` pour gérer les formats propriétaires de chaque provider (Anthropic `thinking` blocks JSON, o1/o3 `reasoning_content`, etc.).

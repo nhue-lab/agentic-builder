@@ -1,5 +1,7 @@
 import logging
+import re
 from datetime import datetime, timezone
+from typing import Optional
 from src.context.state import AgentState, AgentStatus, Message, LLMDecision
 from src.prompt.formatter import PromptFormatter
 from src.lms.router import llm_router
@@ -12,10 +14,31 @@ from config.settings import settings
 
 logger = logging.getLogger("agentic_builder.loop.engine")
 
+# Reasoning token pattern — isole les blocs <think>...</think> (DeepSeek-R1, etc.)
+_THINK_PATTERN = re.compile(r"<think>(.*?)</think>", re.DOTALL | re.IGNORECASE)
+
+
+def _extract_reasoning_tokens(raw_content: str) -> tuple[str, Optional[str]]:
+    """
+    Isole les reasoning tokens (<think>...</think>) du contenu brut du LLM.
+    Retourne (content_sans_think, reasoning_content_or_None).
+    Compatible avec DeepSeek-R1, Claude Thinking, et tout modèle utilisant ce format.
+    """
+    matches = _THINK_PATTERN.findall(raw_content)
+    if not matches:
+        return raw_content, None
+    reasoning = "\n\n".join(m.strip() for m in matches)
+    clean = _THINK_PATTERN.sub("", raw_content).strip()
+    return clean, reasoning
+
+
 class AgentEngine:
-    def __init__(self, router: LoopRouter):
+    def __init__(self, router: LoopRouter, ui_skill=None):
         self.router = router
         self.memory_window = MemoryWindow(max_tokens=settings.max_tokens_per_session)
+        # UISkill optionnel — pattern Observer (voir ROADMAP Jalon 2.5)
+        # Si None, les emit_event() sont des no-ops silencieux
+        self.ui_skill = ui_skill
 
     async def run(self, task: str, state: AgentState) -> AgentState:
         logger.info(f"Starting AgentEngine job {state.session_id} with task: {task}")
@@ -108,6 +131,16 @@ class AgentEngine:
                 "history_tokens_approx": history_tokens
             })
 
+            # UI — Émission de l'event de début d'itération
+            if self.ui_skill:
+                from src.harness.skills.ui.events import make_iteration_start
+                await self.ui_skill.emit_event(make_iteration_start(
+                    iteration=state.iteration,
+                    max_iterations=state.max_iterations,
+                    provider=llm_router.last_used_provider,
+                    model=llm_router.last_used_model,
+                ))
+
             # Build prompt list for LLM call
             messages_payload = [{"role": msg.role, "content": msg.content} for msg in state.history]
 
@@ -121,20 +154,44 @@ class AgentEngine:
                 metrics.token_tracker.track_call(llm_response.input_tokens, llm_response.output_tokens)
                 logger.info(f"LLM content: {llm_response.content}")
 
-                # Output validation
-                decision = OutputFilter.validate_decision(llm_response.content)
+                # Isolation des reasoning tokens (thinking models : DeepSeek-R1, Claude Thinking…)
+                # Les tokens <think> sont extraits avant parsing du LLMDecision
+                clean_content, reasoning = _extract_reasoning_tokens(llm_response.content)
+                if reasoning and self.ui_skill:
+                    from src.harness.skills.ui.events import make_reasoning_token
+                    await self.ui_skill.emit_event(make_reasoning_token(
+                        content=reasoning,
+                        iteration=state.iteration,
+                        provider=llm_router.last_used_provider,
+                        model=llm_router.last_used_model,
+                    ))
+                    logger.debug(f"Reasoning tokens extracted ({len(reasoning)} chars) and emitted to UI.")
+
+                # Output validation (sur le contenu nettoyé)
+                decision = OutputFilter.validate_decision(clean_content)
                 logger.info(f"Parsed decision thought: {decision.thought}")
                 metrics.log_event("decision_parsed", {
                     "action": decision.action,
                     "skill_name": decision.skill_name
                 })
                 
-                # Log Thought & Action to history
+                # Log Thought & Action to history (avec contenu nettoyé des reasoning tokens)
                 state.history.append(Message(
                     role="assistant",
-                    content=llm_response.content,
+                    content=clean_content,
                     timestamp=datetime.now(timezone.utc).isoformat()
                 ))
+
+                # UI — Émission du TOOL_CALL
+                if self.ui_skill and decision.action == "call_skill":
+                    from src.harness.skills.ui.events import make_tool_call
+                    await self.ui_skill.emit_event(make_tool_call(
+                        skill_name=decision.skill_name or "unknown",
+                        arguments=decision.arguments or {},
+                        thought=decision.thought or "",
+                        provider=llm_router.last_used_provider,
+                        model=llm_router.last_used_model,
+                    ))
 
                 # Route Action
                 action_result = await self.router.route(decision, state)
@@ -149,6 +206,15 @@ class AgentEngine:
                     content=f"Observation: {action_result}",
                     timestamp=datetime.now(timezone.utc).isoformat()
                 ))
+
+                # UI — Émission du TOOL_RESULT
+                if self.ui_skill and decision.action == "call_skill":
+                    from src.harness.skills.ui.events import make_tool_result
+                    await self.ui_skill.emit_event(make_tool_result(
+                        skill_name=decision.skill_name or "unknown",
+                        output=str(action_result),
+                        success=True,
+                    ))
 
                 # Store step in trajectory
                 trajectory_steps.append(TrajectoryStep(
@@ -197,6 +263,14 @@ class AgentEngine:
                     timestamp=datetime.now(timezone.utc).isoformat()
                 ))
 
+                # UI — Émission de l'erreur
+                if self.ui_skill:
+                    from src.harness.skills.ui.events import make_error
+                    await self.ui_skill.emit_event(make_error(
+                        message=str(e),
+                        iteration=state.iteration,
+                    ))
+
                 # Auto-correction / self-healing
                 await LoopRecovery.recover(e, state)
                 if state.status == AgentStatus.FAILED:
@@ -233,5 +307,13 @@ class AgentEngine:
             model=settings.model
         )
 
-        return state
+        # UI — Émission de l'event de fin de session
+        if self.ui_skill:
+            from src.harness.skills.ui.events import make_agent_done
+            await self.ui_skill.emit_event(make_agent_done(
+                status=state.status.value,
+                iterations=state.iteration,
+                error=state.errors[-1] if state.errors else None,
+            ))
 
+        return state

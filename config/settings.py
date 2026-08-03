@@ -9,9 +9,9 @@ class Settings(BaseSettings):
     # Agent configs
     # Default: gemini-2.5-flash-lite — free tier on Google AI Studio (30 RPM, 1M TPM)
     # Switch to gemini-2.5-pro for production when performance matters.
-    model: str = "gemini-2.5-flash-lite"
-    fallback_model: str = "gemini-2.5-flash"
-    critique_model: str = "gemini-2.5-flash-lite"
+    model: str = "gemini-2.5-flash"
+    fallback_model: str = "gemini-2.5-pro"
+    critique_model: str = "gemini-2.5-flash"
     critique_threshold: float = 0.7
     temperature: float = 0.2
     max_tokens_per_session: int = 500000
@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
     allowed_telegram_users: list[str] = []
     render_deployment_enabled: bool = False
+
+    # UI Dashboard local (optionnel — graceful degradation si FastAPI absent)
+    ui_enabled: bool = False
+    ui_port: int = 7860
 
     # Config path
     mcp_config_path: str = "config/mcp_servers.json"

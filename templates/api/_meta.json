@@ -1,0 +1,7 @@
+{
+  "type": "api",
+  "name": "FastAPI Headless Agent API",
+  "description": "FastAPI headless service exposing agent execution, status checks, and skill endpoints via REST API.",
+  "available_skills": ["researcher", "tester", "subagent"],
+  "default_skills": ["researcher", "tester"]
+}

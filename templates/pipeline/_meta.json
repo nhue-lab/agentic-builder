@@ -1,0 +1,7 @@
+{
+  "type": "pipeline",
+  "name": "Linear ETL Pipeline",
+  "description": "Deterministic linear execution pipeline for sequential data processing without autonomous LLM routing.",
+  "available_skills": ["researcher", "tester"],
+  "default_skills": ["researcher"]
+}
